@@ -570,3 +570,186 @@ class VoiceProcessor {
 - Voice processing testing
 - Real-time event testing
 - Performance testing for AI operations
+
+
+
+
+
+
+
+TypeScript Interfaces
+typescript
+import { ObjectId } from 'mongodb';
+
+export interface QueryContext {
+  documentId?: ObjectId;
+  pageNumber?: number;
+  section?: string;
+  meetingContext?: string;
+}
+
+export interface Source {
+  documentId: ObjectId;
+  pageNumber: number;
+  excerpt: string;
+  relevance: number;
+}
+
+export interface AIQuery {
+  _id: ObjectId;
+  meetingId: ObjectId;
+  userId: ObjectId;
+  query: string;
+  response: string;
+  context: QueryContext;
+  timestamp: Date;
+  type: 'text' | 'voice';
+  confidence: number;
+  sources: Source[];
+  isHelpful?: boolean;
+  feedback?: string;
+}
+
+export interface PDFAnalysis {
+  _id: ObjectId;
+  documentId: ObjectId;
+  analysis: {
+    summary: string;
+    keyPoints: string[];
+    topics: string[];
+    questions: string[];
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+  };
+  createdAt: Date;
+  updatedAt: Date;
+  version?: number;
+}
+
+export interface DocumentEmbedding {
+  _id: ObjectId;
+  documentId: ObjectId;
+  pageNumber: number;
+  content: string;
+  embedding: number[];
+  metadata: {
+    section: string;
+    wordCount: number;
+    topics: string[];
+  };
+  createdAt: Date;
+}
+
+export interface AIFeedback {
+  _id: ObjectId;
+  queryId: ObjectId;
+  userId: ObjectId;
+  rating: number;
+  feedback?: string;
+  createdAt: Date;
+}
+Mongoose Schemas (models/AIAssistant.ts)
+typescript
+import mongoose, { Schema } from 'mongoose';
+
+const SourceSchema = new Schema({
+  documentId: { type: Schema.Types.ObjectId, ref: 'PDFDocuments' },
+  pageNumber: Number,
+  excerpt: String,
+  relevance: Number
+});
+
+const AIQuerySchema = new Schema({
+  meetingId: { type: Schema.Types.ObjectId, ref: 'Meetings', required: true },
+  userId: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
+  query: { type: String, required: true },
+  response: { type: String, required: true },
+  context: {
+    documentId: { type: Schema.Types.ObjectId, ref: 'PDFDocuments' },
+    pageNumber: Number,
+    section: String,
+    meetingContext: String
+  },
+  timestamp: { type: Date, required: true, index: true },
+  type: { type: String, enum: ['text', 'voice'] },
+  confidence: Number,
+  sources: [SourceSchema],
+  isHelpful: Boolean,
+  feedback: String
+});
+
+const PDFAnalysisSchema = new Schema({
+  documentId: { type: Schema.Types.ObjectId, ref: 'PDFDocuments', required: true },
+  analysis: {
+    summary: String,
+    keyPoints: [String],
+    topics: [String],
+    questions: [String],
+    difficulty: { type: String, enum: ['beginner', 'intermediate', 'advanced'] }
+  },
+  createdAt: { type: Date, required: true },
+  updatedAt: { type: Date, required: true },
+  version: { type: Number, default: 1 }
+});
+
+const DocumentEmbeddingSchema = new Schema({
+  documentId: { type: Schema.Types.ObjectId, ref: 'PDFDocuments', required: true },
+  pageNumber: { type: Number, required: true },
+  content: { type: String, required: true },
+  embedding: { type: [Number], required: true, index: true },
+  metadata: {
+    section: String,
+    wordCount: Number,
+    topics: [String]
+  },
+  createdAt: { type: Date, required: true }
+});
+
+const AIFeedbackSchema = new Schema({
+  queryId: { type: Schema.Types.ObjectId, ref: 'AIQueries', required: true },
+  userId: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
+  rating: { type: Number, min: 1, max: 5 },
+  feedback: String,
+  createdAt: { type: Date, required: true }
+});
+
+// Export models
+export const AIQueryModel = mongoose.model('AIQueries', AIQuerySchema);
+export const PDFAnalysisModel = mongoose.model('PDFAnalyses', PDFAnalysisSchema);
+export const DocumentEmbeddingModel = mongoose.model('DocumentEmbeddings', DocumentEmbeddingSchema);
+export const AIFeedbackModel = mongoose.model('AIFeedback', AIFeedbackSchema);
+AI Service Class Example (TypeScript)
+typescript
+export class AIService {
+  // Query Processing
+  async processQuery(meetingId: string, userId: string, query: string, context?: QueryContext): Promise<AIQuery> { /* ... */ }
+  async processVoiceQuery(meetingId: string, userId: string, audioData: Buffer): Promise<AIQuery> { /* ... */ }
+  async getQueryHistory(meetingId: string, userId?: string): Promise<AIQuery[]> { /* ... */ }
+  
+  // PDF Analysis
+  async analyzePDF(documentId: string): Promise<PDFAnalysis> { /* ... */ }
+  async extractKeyPoints(documentId: string, pageNumbers: number[]): Promise<string[]> { /* ... */ }
+  async generateQuestions(documentId: string, difficulty?: string): Promise<string[]> { /* ... */ }
+  async summarizeDocument(documentId: string): Promise<string> { /* ... */ }
+  
+  // Document Processing
+  async processDocument(documentId: string): Promise<DocumentEmbedding[]> { /* ... */ }
+  async searchDocuments(query: string, groupId: string): Promise<SearchResult[]> { /* ... */ }
+  async getRelevantContext(query: string, documentId: string): Promise<string[]> { /* ... */ }
+  
+  // Meeting Assistance
+  async generateMeetingSummary(meetingId: string): Promise<string> { /* ... */ }
+  async suggestQuestions(meetingId: string, context: string): Promise<string[]> { /* ... */ }
+  async provideStudyTips(meetingId: string, topic: string): Promise<string[]> { /* ... */ }
+}
+Indexes
+Make sure to create these for efficiency:
+
+javascript
+AIQuerySchema.index({ meetingId: 1 });
+AIQuerySchema.index({ userId: 1 });
+AIQuerySchema.index({ timestamp: 1 });
+
+PDFAnalysisSchema.index({ documentId: 1 });
+
+DocumentEmbeddingSchema.index({ documentId: 1, pageNumber: 1 });
+DocumentEmbeddingSchema.index({ embedding: 1 });
