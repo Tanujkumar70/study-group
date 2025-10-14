@@ -542,3 +542,97 @@ pageCount: {
   max: 1000
 }
 ```
+
+const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema({
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  passwordHash: {
+    type: String,
+    required: true
+  },
+  profile: {
+    firstName: {
+      type: String,
+      required: true
+    },
+    lastName: {
+      type: String,
+      required: true
+    },
+    avatar: {
+      type: String,
+      default: null
+    },
+    timezone: {
+      type: String,
+      default: 'UTC'
+    }
+  },
+  preferences: {
+    notifications: {
+      type: Boolean,
+      default: true
+    },
+    theme: {
+      type: String,
+      enum: ['light', 'dark'],
+      default: 'light'
+    },
+    language: {
+      type: String,
+      default: 'en'
+    }
+  },
+  createdAt: {
+    type: Date,
+    required: true,
+    index: true
+  },
+  lastLogin: {
+    type: Date,
+    default: null
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+    index: true
+  },
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationToken: {
+    type: String,
+    default: null
+  },
+  resetPasswordToken: {
+    type: String,
+    default: null
+  },
+  resetPasswordExpires: {
+    type: Date,
+    default: null
+  }
+});
+
+// Indexes
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ username: 1 }, { unique: true });
+userSchema.index({ createdAt: 1 });
+userSchema.index({ isActive: 1 });
+userSchema.index({ 'profile.timezone': 1 }); // Optional, remove if not needed
+
+module.exports = mongoose.model('User', userSchema);
+
