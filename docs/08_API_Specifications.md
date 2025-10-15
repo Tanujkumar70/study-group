@@ -531,3 +531,229 @@ X-RateLimit-Reset: 1640995200
 X-Request-ID: req_123456789
 X-Response-Time: 45ms
 ```
+
+
+
+
+
+API Specifications – Modified (Study Group Application)
+Base URL
+text
+Development: http://localhost:5000/api
+Production: https://api.studygroup.app/api
+Authentication
+All endpoints require JWT authentication:
+
+text
+Authorization: Bearer <jwt_token>
+Common Response Formats
+Success
+
+json
+{
+  "success": true,
+  "data": { ... },
+  "message": "Operation completed successfully"
+}
+Error
+
+json
+{
+  "success": false,
+  "error": "ErrorType",
+  "message": "Human readable error",
+  "details": { ... }
+}
+Pagination
+
+json
+{
+  "success": true,
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 100,
+    "pages": 5
+  }
+}
+User Management API
+Register
+
+POST /api/auth/register
+
+Required fields: email, username, password, firstName, lastName
+
+Optional: timezone
+
+Login
+
+POST /api/auth/login
+
+Fields: email, password
+
+Refresh Token
+
+POST /api/auth/refresh
+
+Field: refreshToken
+
+Profile Endpoints
+
+GET /api/users/profile (returns user object)
+
+PUT /api/users/profile (update profile, preferences)
+
+Group Management API
+Get User’s Groups
+
+GET /api/groups
+
+Create Group
+
+POST /api/groups
+
+Fields: name, description, settings
+
+Join Group
+
+POST /api/groups/:groupId/join
+
+Field: inviteCode
+
+Get Group Members
+
+GET /api/groups/:groupId/members
+
+Scheduling API
+Get User’s Meetings
+
+GET /api/meetings
+
+Query: status, groupId, startDate, endDate
+
+Create Meeting
+
+POST /api/meetings
+
+Fields: groupId, title, description, startTime, duration, attendees, settings
+
+Join Meeting
+
+POST /api/meetings/:meetingId/join
+
+Real-time Communication API
+Chat
+
+POST /api/chat/messages
+
+Fields: meetingId, content, type
+
+GET /api/chat/messages/:meetingId
+
+Query: limit, offset
+
+Video Call
+
+POST /api/calls/start
+
+Field: meetingId
+
+POST /api/calls/:roomId/join
+
+PDF Collaboration API
+Upload PDF
+
+POST /api/pdf/upload
+
+FormData: file, groupId, meetingId (optional)
+
+Get PDF Pages
+
+GET /api/pdf/:documentId/pages
+
+Query: pageNumbers, includeAnnotations
+
+Annotation
+
+POST /api/pdf/:documentId/annotations
+
+Fields: pageNumber, type, content, coordinates, color, opacity
+
+GET /api/pdf/:documentId/annotations
+
+AI Assistant API
+Process Text Query
+
+POST /api/ai/query
+
+Fields: meetingId, query, context
+
+Process Voice Query
+
+POST /api/ai/voice-query
+
+FormData: audio, meetingId
+
+PDF Analysis
+
+POST /api/ai/analyze-pdf
+
+Field: documentId
+
+Generate Questions
+
+POST /api/ai/generate-questions
+
+Fields: documentId, difficulty, count
+
+WebSocket Events
+Connection
+
+javascript
+const socket = io('ws://localhost:5000', { auth: { token } });
+Chat
+
+javascript
+socket.emit('chat:message', { meetingId, content, type });
+socket.on('chat:message', cb);
+socket.emit('chat:typing', { meetingId, isTyping: true });
+Video
+
+javascript
+socket.emit('call:start', { meetingId });
+socket.emit('call:offer', { callId, targetUserId, offer });
+socket.on('call:offer', cb);
+PDF
+
+javascript
+socket.emit('pdf:annotation:add', { documentId, annotation });
+socket.on('pdf:annotation:added', cb);
+Error Codes
+Code	Description
+400	Bad Request
+401	Unauthorized
+403	Forbidden
+404	Not Found
+409	Conflict
+422	Validation Failed
+429	Rate Limit Exceeded
+500	Server Error
+503	Service Unavailable
+Rate Limits
+Endpoint	Limit
+Authentication	5 requests/minute
+General API	100 requests/minute
+AI Queries	10 requests/minute
+File Upload	5 requests/minute
+WebSocket	1000 events/minute
+Response Headers
+X-RateLimit-Limit
+
+X-RateLimit-Remaining
+
+X-RateLimit-Reset
+
+X-Request-ID
+
+X-Response-Time
