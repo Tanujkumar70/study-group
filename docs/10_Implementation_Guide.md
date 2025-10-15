@@ -786,4 +786,4 @@ npm install -D husky lint-staged
 }
 ```
 
-This streamlined guide now covers setup, configuration, structure, Docker, testing, workflow, and production notes for both backend and frontend, following best practices for a modern TypeScript/React/Node/MongoDB/Redis stack.
+This streamlined guide now covers setup, configuration, structure, Docker, testing, workflow, and production notes for both backend and frontend, following best practices for a modern TypeScript/React/Node/MongoDB/Redis stack.  
